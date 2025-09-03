@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacBookDepot Business Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .module-card {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .module-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .module-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .module-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .stats-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MacBookDepot Business Manager</h1>
+            <p>Complete inventory and sales management system</p>
+        </div>
+
+        <div class="stats-section">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #333;">Business Overview</h2>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalProducts">-</div>
+                    <div class="stat-label">Total Products</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="availableProducts">-</div>
+                    <div class="stat-label">Available</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="soldProducts">-</div>
+                    <div class="stat-label">Sold</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalSales">-</div>
+                    <div class="stat-label">Total Sales</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modules-grid">
+            <div class="module-card" onclick="window.location.href='/'">
+                <div class="module-icon">📊</div>
+                <div class="module-title">Excel Upload</div>
+                <div class="module-description">Process supplier Excel files and sync to Shopify with enhanced inventory tracking</div>
+            </div>
+
+            <div class="module-card" onclick="window.location.href='/sales'">
+                <div class="module-icon">💰</div>
+                <div class="module-title">Sales Entry</div>
+                <div class="module-description">Record local cash and Interac sales with customer tracking</div>
+            </div>
+
+            <div class="module-card" onclick="window.location.href='/costs'">
+                <div class="module-icon">🔧</div>
+                <div class="module-title">Cost Management</div>
+                <div class="module-description">Track repairs, accessories, and additional costs per unit</div>
+            </div>
+
+            <div class="module-card" onclick="window.location.href='/reports'">
+                <div class="module-icon">📈</div>
+                <div class="module-title">Reports</div>
+                <div class="module-description">Government compliance reports and business analytics</div>
+            </div>
+
+            <div class="module-card" onclick="window.location.href='/inventory'">
+                <div class="module-icon">📦</div>
+                <div class="module-title">Inventory Overview</div>
+                <div class="module-description">View all products, search by stock ID, and manage inventory</div>
+            </div>
+
+            <div class="module-card" onclick="window.location.href='/settings'">
+                <div class="module-icon">⚙️</div>
+                <div class="module-title">Settings</div>
+                <div class="module-description">System configuration and data management</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>MacBookDepot Business Management System v1.0</p>
+            <p>Quebec Compliance Ready • Off-the-Books Accounting Capable</p>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard stats
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/dashboard-stats');
+                const stats = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('totalProducts').textContent = stats.totalProducts || 0;
+                    document.getElementById('availableProducts').textContent = stats.availableProducts || 0;
+                    document.getElementById('soldProducts').textContent = stats.soldProducts || 0;
+                    document.getElementById('totalSales').textContent = '$' + (stats.totalSales || 0).toLocaleString();
+                }
+            } catch (error) {
+                console.log('Stats loading error:', error);
+            }
+        }
+
+        // Load stats on page load
+        loadStats();
+    </script>
+</body>
+</html>

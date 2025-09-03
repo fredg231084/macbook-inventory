@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost Management - MacBookDepot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 600;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .results {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .results.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .product-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .cost-history {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .cost-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cost Management</h1>
+            <p>Track repairs, accessories, and additional costs</p>
+        </div>
+
+       <div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/excel">Excel Upload</a>
+    <a href="/sales">Sales Entry</a>
+    <a href="/costs">Cost Management</a>
+    <a href="/reports">Reports</a>
+</div>
+
+        <div class="section">
+            <h2>Add Additional Cost</h2>
+            <form id="costForm">
+                <div class="form-group">
+                    <label for="stockId">Stock ID</label>
+                    <input type="text" id="stockId" required placeholder="Enter stock ID">
+                    <button type="button" class="btn" id="lookupBtn">Lookup Product</button>
+                </div>
+
+                <div class="product-info" id="productInfo"></div>
+
+                <div class="form-group">
+                    <label for="costType">Cost Type</label>
+                    <select id="costType" required>
+                        <option value="">Select cost type</option>
+                        <option value="repair">Repair</option>
+                        <option value="charger">Charger</option>
+                        <option value="taxes">Taxes</option>
+                        <option value="shipping">Shipping</option>
+                        <option value="cleaning">Cleaning/Refurbishment</option>
+                        <option value="testing">Testing/Diagnostics</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount ($)</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" rows="3" placeholder="Describe the cost or work performed"></textarea>
+                </div>
+
+                <button type="submit" class="btn">Add Cost</button>
+                <button type="button" class="btn" id="viewHistoryBtn">View Cost History</button>
+            </form>
+        </div>
+
+        <div class="cost-history" id="costHistory" style="display: none;">
+            <h3>Cost History for This Product</h3>
+            <div id="historyContent"></div>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const stockIdInput = document.getElementById('stockId');
+        const lookupBtn = document.getElementById('lookupBtn');
+        const productInfo = document.getElementById('productInfo');
+        const costForm = document.getElementById('costForm');
+        const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+        const costHistory = document.getElementById('costHistory');
+        const historyContent = document.getElementById('historyContent');
+        const results = document.getElementById('results');
+
+        // Product lookup
+        lookupBtn.addEventListener('click', async () => {
+            const stockId = stockIdInput.value.trim();
+            if (!stockId) return;
+
+            try {
+                const response = await fetch(`/api/product/${stockId}`);
+                const data = await response.json();
+
+                if (response.ok && data.product) {
+                    const product = data.product;
+                    productInfo.innerHTML = `
+                        <h3>Product Found</h3>
+                        <p><strong>Type:</strong> ${product.product_type} ${product.display_size || ''}</p>
+                        <p><strong>Specs:</strong> ${product.processor} | ${product.storage} | ${product.memory}</p>
+                        <p><strong>Color:</strong> ${product.color} | <strong>Condition:</strong> Grade ${product.condition}</p>
+                        <p><strong>Serial:</strong> ${product.serial_number}</p>
+                        <p><strong>Current Additional Costs:</strong> $${product.additional_costs}</p>
+                        <p><strong>Status:</strong> ${product.is_sold ? 'SOLD' : 'Available'}</p>
+                    `;
+                    productInfo.style.display = 'block';
+                } else {
+                    showResults('Product not found in inventory', 'error');
+                }
+            } catch (error) {
+                showResults('Error looking up product: ' + error.message, 'error');
+            }
+        });
+
+        // View cost history
+        viewHistoryBtn.addEventListener('click', async () => {
+            const stockId = stockIdInput.value.trim();
+            if (!stockId) {
+                showResults('Please enter a stock ID first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/costs/${stockId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayCostHistory(data.costs);
+                } else {
+                    showResults('Error fetching cost history: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showResults('Error: ' + error.message, 'error');
+            }
+        });
+
+        // Cost form submission
+        costForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const costData = {
+                stockId: stockIdInput.value.trim(),
+                costType: document.getElementById('costType').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch('/api/add-cost', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(costData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResults(`Cost added successfully! Total additional costs now: $${result.totalCosts}`, 'success');
+                    document.getElementById('costType').value = '';
+                    document.getElementById('amount').value = '';
+                    document.getElementById('description').value = '';
+                    
+                    // Refresh product info to show updated costs
+                    lookupBtn.click();
+                } else {
+                    showResults('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResults('Error adding cost: ' + error.message, 'error');
+            }
+        });
+
+        function displayCostHistory(costs) {
+            if (costs.length === 0) {
+                historyContent.innerHTML = '<p>No additional costs recorded for this product.</p>';
+            } else {
+                let html = '';
+                let total = 0;
+                
+                costs.forEach(cost => {
+                    total += parseFloat(cost.amount);
+                    html += `
+                        <div class="cost-item">
+                            <strong>${cost.cost_type.toUpperCase()}</strong> - $${cost.amount}
+                            <br><small>Date: ${new Date(cost.date_added).toLocaleDateString()}</small>
+                            ${cost.description ? `<br><em>${cost.description}</em>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html = `<p><strong>Total Additional Costs: $${total.toFixed(2)}</strong></p>` + html;
+                historyContent.innerHTML = html;
+            }
+            
+            costHistory.style.display = 'block';
+        }
+
+        function showResults(message, type) {
+            results.className = `results ${type}`;
+            results.textContent = message;
+            results.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    results.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

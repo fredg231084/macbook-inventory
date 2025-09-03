@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacBookDepot.com - Enhanced Inventory Sync</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"], input[type="password"], input[type="file"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-upload {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .results.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .preview {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+
+        .step {
+            opacity: 0.5;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .step.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .enhanced-badge {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MacBookDepot.com <span class="enhanced-badge">✨ ENHANCED</span></h1>
+            <p>Advanced Inventory Sync Tool with Stock Tracking</p>
+            <div class="status">
+                🚀 Enhanced Version - Stock Tracking, Variant Management & Smart Deduplication!
+            </div>
+        </div>
+
+        <div class="nav" style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 30px; text-align: center;">
+            <a href="/" style="color: #667eea; text-decoration: none; margin: 0 15px; font-weight: 600;">Dashboard</a>
+            <a href="/excel" style="color: #667eea; text-decoration: none; margin: 0 15px; font-weight: 600;">Excel Upload</a>
+            <a href="/sales" style="color: #667eea; text-decoration: none; margin: 0 15px; font-weight: 600;">Sales Entry</a>
+            <a href="/costs" style="color: #667eea; text-decoration: none; margin: 0 15px; font-weight: 600;">Cost Management</a>
+            <a href="/reports" style="color: #667eea; text-decoration: none; margin: 0 15px; font-weight: 600;">Reports</a>
+        </div>
+
+        <!-- Step 1: File Upload -->
+        <div class="section step active" id="step1">
+            <h2>📁 Step 1: Upload Excel File</h2>
+            <div class="note">
+                <strong>✨ Enhanced Features:</strong> Individual stock tracking, advanced variant creation, smart deduplication<br>
+                <strong>📊 Supported:</strong> MacBooks, iPads, iPhones, iMacs, and Apple Accessories<br>
+                <strong>🎯 New:</strong> Color + Condition + Keyboard Layout variants with stock numbers
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="file-upload" onclick="document.getElementById('excelFile').click()">
+                    <input type="file" id="excelFile" name="excelFile" accept=".xlsx,.xls" style="display: none;">
+                    <p style="font-size: 1.3rem; margin-bottom: 10px;">📊 Click to select your Excel file</p>
+                    <p style="color: #666;">Accepted formats: .xlsx, .xls</p>
+                </div>
+                <div class="file-info" id="fileInfo"></div>
+                <button type="submit" class="btn" id="processBtn" disabled>🔄 Process Excel File with Enhanced Tracking</button>
+            </form>
+        </div>
+
+   <!-- Step 2: Review Data -->
+   <div class="section step" id="step2">
+    <h2>📋 Step 2: Review Enhanced Data Processing</h2>
+    <div class="stats" id="dataStats"></div>
+    <div class="preview" id="dataPreview"></div>
+    
+    <div style="margin: 20px 0; padding: 15px; background: #e8f4fd; border-radius: 10px; border-left: 4px solid #007bff;">
+        <h3>🖼️ Test Image Scraping (Optional)</h3>
+        <p>Test our Best Buy image scraping on the first product to see how it works:</p>
+        <button class="btn" id="testImageBtn" disabled>🧪 Test Image Scraping</button>
+        <div id="imageTestResults" style="margin-top: 15px; display: none;"></div>
+    </div>
+    
+    <button class="btn" id="continueBtn">➡️ Continue to Shopify Sync</button>
+</div>
+
+        <!-- Step 3: Shopify Configuration -->
+        <div class="section step" id="step3">
+            <h2>🛍️ Step 3: Advanced Shopify Sync</h2>
+            <div class="note">
+                <strong>🔑 Need API Token?</strong><br>
+                1. Go to Shopify Admin → Apps → App and sales channel settings<br>
+                2. Develop apps → Create app → Configure Admin API scopes<br>
+                3. Enable: write_products, read_products, write_inventory, read_inventory<br>
+                4. Install app → Copy Admin API access token<br><br>
+                <strong>✨ Enhanced Sync Features:</strong> Smart deduplication, variant management, collection organization
+            </div>
+            <div class="form-group">
+                <label for="storeUrl">🏪 Store URL (without https://)</label>
+                <input type="text" id="storeUrl" placeholder="your-store.myshopify.com">
+            </div>
+            <div class="form-group">
+                <label for="apiToken">🔐 Admin API Access Token</label>
+                <input type="password" id="apiToken" placeholder="shpat_...">
+            </div>
+            <button class="btn" id="syncBtn">🚀 Start Enhanced Shopify Sync</button>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results"></div>
+        
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Processing your request...</p>
+        </div>
+    </div>
+
+    <script>
+        let processedData = null;
+        let currentStep = 1;
+
+      // DOM elements
+      const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('excelFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const processBtn = document.getElementById('processBtn');
+        const dataStats = document.getElementById('dataStats');
+        const dataPreview = document.getElementById('dataPreview');
+        const testImageBtn = document.getElementById('testImageBtn');
+        const imageTestResults = document.getElementById('imageTestResults');
+        const continueBtn = document.getElementById('continueBtn');
+        const syncBtn = document.getElementById('syncBtn');
+        const storeUrlInput = document.getElementById('storeUrl');
+        const apiTokenInput = document.getElementById('apiToken');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+
+        // File selection
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                if (!file.name.match(/\.(xlsx|xls)$/)) {
+                    showResults('❌ Please select a valid Excel file (.xlsx or .xls)', 'error');
+                    return;
+                }
+
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                fileInfo.innerHTML = `
+                    <strong>✅ Selected:</strong> ${file.name}<br>
+                    <strong>📏 Size:</strong> ${fileSize} MB<br>
+                    <strong>✨ Ready for enhanced processing!</strong>
+                `;
+                fileInfo.style.display = 'block';
+                processBtn.disabled = false;
+            }
+        });
+
+        // Form submission
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) {
+                showResults('❌ Please select a file first', 'error');
+                return;
+            }
+
+            showLoading('🔄 Processing Excel file with enhanced inventory tracking...');
+
+            try {
+                const formData = new FormData();
+                formData.append('excelFile', file);
+
+                const response = await fetch('/api/process-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    processedData = data;
+                    displayProcessedData(data);
+                    nextStep();
+                    showResults('✅ File processed successfully with enhanced features! Stock tracking and variants ready.', 'success');
+                } else {
+                    throw new Error(data.error || 'Processing failed');
+                }
+            } catch (error) {
+                console.error('Processing error:', error);
+                showResults(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Continue button
+        continueBtn.addEventListener('click', () => nextStep());
+
+        // Sync button
+        syncBtn.addEventListener('click', async function() {
+            const storeUrl = storeUrlInput.value.trim();
+            const apiToken = apiTokenInput.value.trim();
+
+            if (!storeUrl || !apiToken) {
+                showResults('❌ Please fill in all Shopify configuration fields', 'error');
+                return;
+            }
+
+            if (!processedData) {
+                showResults('❌ No processed data available. Please process an Excel file first.', 'error');
+                return;
+            }
+
+            showLoading('🚀 Syncing to Shopify with enhanced features...');
+
+            try {
+                const response = await fetch('/api/sync-shopify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        storeUrl: storeUrl,
+                        apiToken: apiToken,
+                        productGroups: processedData.productGroups
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displaySyncResults(result);
+                    showResults('🎉 Enhanced sync completed successfully!', 'success');
+                } else {
+                    throw new Error(result.error || 'Sync failed');
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                showResults(`❌ Sync Error: ${error.message}`, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Test Image Scraping button
+        testImageBtn.addEventListener('click', async function() {
+            if (!processedData || !processedData.productGroups) {
+                showResults('❌ No processed data available. Please process an Excel file first.', 'error');
+                return;
+            }
+
+            // Get the first product group for testing
+            const productGroupEntries = Object.entries(processedData.productGroups);
+            if (productGroupEntries.length === 0) {
+                showResults('❌ No product groups available for testing.', 'error');
+                return;
+            }
+
+            const [groupKey, productGroup] = productGroupEntries[0];
+            
+            showLoading('🧪 Testing Best Buy image scraping...');
+            testImageBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/test-image-scraping', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productGroup: productGroup
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    displayImageTestResults(result);
+                    showResults('🎉 Image scraping test completed!', 'success');
+                } else {
+                    throw new Error(result.error || 'Image scraping test failed');
+                }
+            } catch (error) {
+                console.error('Image scraping test error:', error);
+                showResults(`❌ Image Test Error: ${error.message}`, 'error');
+                imageTestResults.innerHTML = `
+                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <h4>❌ Test Failed</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+                imageTestResults.style.display = 'block';
+            } finally {
+                hideLoading();
+                testImageBtn.disabled = false;
+            }
+        });
+
+        // ENHANCED: Updated display functions for new data structure
+        function displayProcessedData(data) {
+            // Handle the new enhanced data structure
+            const totalUniqueUnits = data.totalUniqueUnits || data.totalItems || 0;
+            const groupCount = data.groupCount || 0;
+            const categoriesCount = data.categories ? Object.keys(data.categories).length : 0;
+            
+            dataStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${data.totalItems || 0}</div>
+                    <div class="stat-label">Apple Products Found</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${groupCount}</div>
+                    <div class="stat-label">Product Groups</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalUniqueUnits}</div>
+                    <div class="stat-label">Total Units</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${categoriesCount}</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+            `;
+
+            let preview = '🎯 Enhanced Product Groups Created:\n\n';
+            
+            if (data.productGroups && typeof data.productGroups === 'object') {
+                const productGroupEntries = Object.entries(data.productGroups).slice(0, 5);
+                
+                productGroupEntries.forEach(([key, group], index) => {
+                    // Handle the new enhanced structure
+                    const title = group.seoTitle || group.title || `Product ${index + 1}`;
+                    const totalUnits = group.totalUnits || 0;
+                    const variantCount = group.variants ? Object.keys(group.variants).length : 0;
+                    const basePrice = group.basePrice || 0;
+                    
+                    preview += `${index + 1}. ${title}\n`;
+                    preview += `   📦 ${totalUnits} units in ${variantCount} variants | Base Price: $${basePrice}\n`;
+                    
+                    // Show some variant details if available
+                    if (group.variants && Object.keys(group.variants).length > 0) {
+                        const firstVariant = Object.values(group.variants)[0];
+                        if (firstVariant) {
+                            preview += `   🎨 Example: ${firstVariant.color || 'Default'} - Grade ${firstVariant.condition || 'A'} - ${firstVariant.keyboardLayout || 'English'} (${firstVariant.quantity || 0} available)\n`;
+                        }
+                    }
+                    
+                    preview += `\n`;
+                });
+
+                const totalGroups = Object.keys(data.productGroups).length;
+                if (totalGroups > 5) {
+                    preview += `... and ${totalGroups - 5} more product groups\n`;
+                }
+            } else {
+                preview += 'No product groups found.\n';
+            }
+
+            // Add categories breakdown if available
+            if (data.categories && Object.keys(data.categories).length > 0) {
+                preview += '\n📊 Categories Found:\n';
+                Object.entries(data.categories).forEach(([category, count]) => {
+                    preview += `   • ${category}: ${count} items\n`;
+                });
+            }
+
+            dataPreview.textContent = preview;
+            // Enable the image test button now that we have processed data
+            testImageBtn.disabled = false;
+
+        }
+
+        function displaySyncResults(result) {
+            let html = `
+                <h3>🎉 Enhanced Shopify Sync Complete!</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${result.created || 0}</div>
+                        <div class="stat-label">Products Created</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${result.updated || 0}</div>
+                        <div class="stat-label">Products Updated</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${(result.variantsCreated || 0) + (result.variantsUpdated || 0)}</div>
+                        <div class="stat-label">Total Variants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${result.stockItemsProcessed || 0}</div>
+                        <div class="stat-label">Stock Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${result.collectionsCreated || 0}</div>
+                        <div class="stat-label">Collections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${result.errors || 0}</div>
+                        <div class="stat-label">Errors</div>
+                    </div>
+                </div>
+            `;
+
+            if (result.details && result.details.length > 0) {
+                html += '<h4>📋 Sync Details:</h4><div style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">';
+                result.details.forEach(detail => {
+                    // Add icons based on the type of detail
+                    let icon = '📝';
+                    if (detail.includes('✅ Created')) icon = '🆕';
+                    else if (detail.includes('✅ Updated')) icon = '🔄';
+                    else if (detail.includes('❌ Error')) icon = '⚠️';
+                    
+                    html += `<p style="margin: 5px 0; font-family: monospace; font-size: 0.9em;">${detail}</p>`;
+                });
+                html += '</div>';
+                
+                // Add summary if there were successful operations
+                if (result.created > 0 || result.updated > 0) {
+                    html += `
+                        <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                            <h4>🎉 Success Summary:</h4>
+                            <p>Successfully processed ${(result.variantsCreated || 0) + (result.variantsUpdated || 0)} variants across ${(result.created || 0) + (result.updated || 0)} products!</p>
+                            <p>Total stock items tracked: ${result.stockItemsProcessed || 0}</p>
+                            <p>Collections managed: ${result.collectionsCreated || 0}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function displayImageTestResults(result) {
+            let html = `
+                <div style="background: #e8f5e8; border: 1px solid #4caf50; border-radius: 8px; padding: 20px; margin-top: 15px;">
+                    <h4>🧪 Image Scraping Test Results</h4>
+                    <p><strong>🎯 Tested Product:</strong> ${result.productTitle || 'Unknown'}</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0;">
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #667eea;">${result.summary?.genericImages || 0}</div>
+                            <div style="font-size: 0.9em; color: #666;">Generic Images</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #667eea;">${Object.keys(result.summary?.keyboardLayouts || {}).length}</div>
+                            <div style="font-size: 0.9em; color: #666;">Keyboard Layouts</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5em; font-weight: bold; color: #667eea;">${result.summary?.totalKeyboardImages || 0}</div>
+                            <div style="font-size: 0.9em; color: #666;">Keyboard Images</div>
+                        </div>
+                    </div>
+            `;
+
+            // Show keyboard layout details if available
+            if (result.summary?.keyboardLayouts && Object.keys(result.summary.keyboardLayouts).length > 0) {
+                html += `
+                    <h5>🎹 Keyboard Layouts Found:</h5>
+                    <ul style="margin: 10px 0;">
+                `;
+                Object.entries(result.summary.keyboardLayouts).forEach(([layout, count]) => {
+                    html += `<li><strong>${layout}:</strong> ${count} images</li>`;
+                });
+                html += `</ul>`;
+            }
+
+            // Show some sample images if available
+            if (result.results?.genericImages && result.results.genericImages.length > 0) {
+                html += `
+                    <h5>📸 Sample Images Found:</h5>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0;">
+                `;
+                result.results.genericImages.slice(0, 3).forEach((imageUrl, index) => {
+                    html += `
+                        <img src="${imageUrl}" alt="Product ${index + 1}" 
+                             style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;"
+                             onerror="this.style.display='none'">
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // Show any errors or warnings
+            if (result.details && result.details.includes('timeout') || result.details?.includes('failed')) {
+                html += `
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <strong>⚠️ Note:</strong> Some scraping operations may have timed out. This is normal for Best Buy's anti-bot protection.
+                    </div>
+                `;
+            }
+
+            html += `
+                    <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                        <strong>💡 How it works:</strong> This feature searches Best Buy Canada for similar products and extracts high-quality images 
+                        that can be used for your Shopify listings. The system attempts to find both generic product images and 
+                        keyboard-specific images when applicable.
+                    </p>
+                </div>
+            `;
+
+            imageTestResults.innerHTML = html;
+            imageTestResults.style.display = 'block';
+        }
+
+        function nextStep() {
+            if (currentStep < 3) {
+                currentStep++;
+                updateStepDisplay();
+            }
+        }
+
+        function updateStepDisplay() {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                if (index + 1 <= currentStep) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+        }
+
+        function showLoading(message) {
+            loadingText.textContent = message;
+            loadingDiv.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+        }
+
+        function showResults(message, type) {
+            resultsDiv.className = `results ${type}`;
+            resultsDiv.innerHTML = `<p>${message}</p>`;
+            resultsDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    resultsDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        console.log('🚀 MacBookDepot Enhanced Inventory Sync - Ready!');
+        console.log('✨ Features: Stock tracking, Variant management, Smart deduplication');
+    </script>
+</body>
+</html>

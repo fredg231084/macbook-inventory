@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Sales Entry - MacBookDepot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: 600;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"], input[type="number"], input[type="email"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .results {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .results.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .product-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Local Sales Entry</h1>
+            <p>Record cash and Interac sales</p>
+        </div>
+
+<div class="nav">
+    <a href="/">Dashboard</a>
+    <a href="/excel">Excel Upload</a>
+    <a href="/sales">Sales Entry</a>
+    <a href="/costs">Cost Management</a>
+    <a href="/reports">Reports</a>
+</div>
+
+        <div class="section">
+            <h2>Record New Sale</h2>
+            <form id="saleForm">
+                <div class="form-group">
+                    <label for="stockId">Stock ID</label>
+                    <input type="text" id="stockId" required placeholder="Enter stock ID">
+                    <button type="button" class="btn" id="lookupBtn">Lookup Product</button>
+                </div>
+
+                <div class="product-info" id="productInfo"></div>
+
+                <div class="form-group">
+                    <label for="salePrice">Sale Price ($)</label>
+                    <input type="number" id="salePrice" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select payment method</option>
+                        <option value="cash">Cash</option>
+                        <option value="interac">Interac</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerName">Customer Name</label>
+                    <input type="text" id="customerName" placeholder="Optional">
+                </div>
+
+                <div class="form-group">
+                    <label for="customerEmail">Customer Email</label>
+                    <input type="email" id="customerEmail" placeholder="Optional">
+                </div>
+
+                <div class="form-group">
+                    <label for="customerPhone">Customer Phone</label>
+                    <input type="text" id="customerPhone" placeholder="Optional">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" rows="3" placeholder="Optional notes about the sale"></textarea>
+                </div>
+
+                <button type="submit" class="btn">Record Sale</button>
+                <button type="button" class="btn" onclick="window.location.href='/reports'">View Reports</button>
+            </form>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const stockIdInput = document.getElementById('stockId');
+        const lookupBtn = document.getElementById('lookupBtn');
+        const productInfo = document.getElementById('productInfo');
+        const saleForm = document.getElementById('saleForm');
+        const results = document.getElementById('results');
+
+        // Product lookup
+        lookupBtn.addEventListener('click', async () => {
+            const stockId = stockIdInput.value.trim();
+            if (!stockId) return;
+
+            try {
+                const response = await fetch(`/api/product/${stockId}`);
+                const data = await response.json();
+
+                if (response.ok && data.product) {
+                    const product = data.product;
+                    productInfo.innerHTML = `
+                        <h3>Product Found</h3>
+                        <p><strong>Type:</strong> ${product.product_type} ${product.display_size || ''}</p>
+                        <p><strong>Specs:</strong> ${product.processor} | ${product.storage} | ${product.memory}</p>
+                        <p><strong>Color:</strong> ${product.color} | <strong>Condition:</strong> Grade ${product.condition}</p>
+                        <p><strong>Serial:</strong> ${product.serial_number}</p>
+                        <p><strong>Original Cost:</strong> $${product.supplier_cost}</p>
+                        <p><strong>Additional Costs:</strong> $${product.additional_costs}</p>
+                    `;
+                    productInfo.style.display = 'block';
+                } else {
+                    showResults('Product not found in inventory', 'error');
+                }
+            } catch (error) {
+                showResults('Error looking up product: ' + error.message, 'error');
+            }
+        });
+
+        // Sale form submission
+        saleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const saleData = {
+                stockId: stockIdInput.value.trim(),
+                salePrice: parseFloat(document.getElementById('salePrice').value),
+                paymentMethod: document.getElementById('paymentMethod').value,
+                customerName: document.getElementById('customerName').value,
+                customerEmail: document.getElementById('customerEmail').value,
+                customerPhone: document.getElementById('customerPhone').value,
+                notes: document.getElementById('notes').value
+            };
+
+            try {
+                const response = await fetch('/api/record-sale', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(saleData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResults('Sale recorded successfully!', 'success');
+                    saleForm.reset();
+                    productInfo.style.display = 'none';
+                } else {
+                    showResults('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResults('Error recording sale: ' + error.message, 'error');
+            }
+        });
+
+        function showResults(message, type) {
+            results.className = `results ${type}`;
+            results.textContent = message;
+            results.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    results.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
